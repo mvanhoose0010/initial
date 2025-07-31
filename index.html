@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Initials Lookup + Tracker Side-by-Side</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f8f8f8;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-dropdown-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      align-items: flex-start;
+      max-width: 650px;
+    }
+    #initialsInput {
+      font-size: 18px;
+      padding: 10px;
+      width: 200px;
+      position: relative;
+      z-index: 2; /* keep input on top */
+    }
+    #nameDropdown {
+      font-size: 18px;
+      padding: 10px;
+      width: 400px;
+      size: 5;
+      position: relative;
+      top: 0;
+      z-index: 1;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+      width: 100%;
+      max-width: 650px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: #eee;
+    }
+    #refreshBtn {
+      width: auto;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      margin-top: 10px;
+      cursor: pointer;
+      padding: 10px 15px;
+      font-size: 16px;
+      max-width: 650px;
+    }
+    #refreshBtn:hover {
+      background-color: #c9302c;
+    }
+    .delete-btn {
+      background-color: transparent;
+      border: none;
+      color: red;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 6px;
+      user-select: none;
+    }
+    .delete-btn:hover {
+      color: darkred;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="input-dropdown-container">
+    <div>
+      <label for="initialsInput">Enter Initials:</label>
+      <input type="text" id="initialsInput" placeholder="e.g. MV" autocomplete="off" />
+    </div>
+
+    <div>
+      <label for="nameDropdown">Matching Names:</label>
+      <select id="nameDropdown" size="14">
+        <option disabled selected>Select a name...</option>
+      </select>
+    </div>
+  </div>
+
+  <table id="selectionTable" aria-label="Selected names table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Initials</th>
+        <th>Shift</th>
+        <th>Remove</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Selected rows go here -->
+    </tbody>
+  </table>
+
+  <button id="refreshBtn">🔄 Refresh Grid</button>
+
+  <script>
+    const people = [
+      { initials: "CN", name: "Curt Norgoard", shift: 0 },
+{ initials: "AD", name: "Amber Dotson", shift: 0 },
+{ initials: "JD", name: "James Dragovich", shift: 0 },
+{ initials: "DB", name: "Deyon Burress", shift: 0 },
+{ initials: "JO", name: "Joy Owens", shift: 0 },
+{ initials: "AB", name: "Alexandria Back", shift: 0 },
+{ initials: "TD", name: "Ty Dove", shift: 0 },
+{ initials: "YC", name: "Yairina Cretoff", shift: 0 },
+{ initials: "MC", name: "Mares Creitoff", shift: 0 },
+{ initials: "CV", name: "Crisbelis Velasquez", shift: 0 },
+{ initials: "RC", name: "Rebecca Couch", shift: 0 },
+{ initials: "BM", name: "Benny Miller", shift: 0 },
+{ initials: "CH", name: "Chris Hinton", shift: 0 },
+{ initials: "BDC", name: "Britten D Carter", shift: 0 },
+{ initials: "CM", name: "Chamcellie Mvemba", shift: 0 },
+{ initials: "NB", name: "Noble Baya", shift: 0 },
+{ initials: "TK", name: "Tyzhanae Kent", shift: 0 },
+{ initials: "CW", name: "Carlos Weats", shift: 0 },
+{ initials: "KH", name: "Kayia Hutchenson", shift: 0 },
+{ initials: "TP", name: "Thomas Pearson", shift: 0 },
+{ initials: "CC", name: "Cory Chapman", shift: 0 },
+{ initials: "AG", name: "Arianna Gonzalu", shift: 0 },
+{ initials: "JR", name: "Jala Ridley", shift: 0 },
+{ initials: "TD", name: "Timara Doriety", shift: 0 },
+{ initials: "nan", name: "Justin Moore", shift: 0 },
+{ initials: "SL", name: "Shanita Lord", shift: 0 },
+{ initials: "EN", name: "Emerence Niyonsaba", shift: 0 },
+{ initials: "AC", name: "Autumn Cline", shift: 0 },
+{ initials: "MR", name: "Maria Rodriguez", shift: 0 },
+{ initials: "MT", name: "Medard Tombani", shift: 0 },
+{ initials: "LE", name: "Laurie Edinger", shift: 0 },
+{ initials: "TK", name: "Tyzhanae Kent", shift: 0 },
+{ initials: "BI", name: "Bronia Irakoze", shift: 0 },
+{ initials: "AW", name: "Alphons Uwimana", shift: 0 },
+{ initials: "AQ", name: "Akira Queener", shift: 0 },
+{ initials: "TS", name: "Tammy Sandifer", shift: 0 },
+{ initials: "EB", name: "Eva Bishop", shift: 0 },
+{ initials: "SH", name: "Sequila Hutchinson", shift: 0 },
+{ initials: "DP", name: "Dallen Perry", shift: 0 },
+{ initials: "NH", name: "Nykenya Hines", shift: 0 },
+{ initials: "LJ", name: "Lucius Jackson", shift: 0 },
+{ initials: "OJ", name: "Omarius Jackson", shift: 0 },
+{ initials: "HK", name: "Heather Kline", shift: 0 },
+{ initials: "LCA", name: "Logan C Arnett", shift: 0 },
+{ initials: "JLS", name: "Jarred Shelton", shift: 0 },
+{ initials: "KK", name: "Keaton Kngor", shift: 0 },
+{ initials: "EW", name: "Ebony Williams", shift: 0 },
+{ initials: "KJM", name: "Kevin Martin", shift: 0 },
+{ initials: "MP", name: "Mishella Petneli", shift: 0 },
+{ initials: "PW", name: "Priscella Williams", shift: 0 },
+{ initials: "RC", name: "Ryan Crump", shift: 0 },
+{ initials: "WW", name: "William Wright", shift: 0 },
+{ initials: "CSF", name: "Carrio Freeman", shift: 0 },
+{ initials: "AKB", name: "Andrew Butare", shift: 0 },
+{ initials: "HOM", name: "Hassan Muhsen", shift: 0 },
+{ initials: "SC", name: "Samantha Cruz", shift: 0 },
+{ initials: "DC", name: "Damari Christopher", shift: 0 },
+{ initials: "JWB", name: "Joshua Bowling", shift: 0 },
+{ initials: "OS", name: "Osea Sudi", shift: 0 },
+{ initials: "AH", name: "Alyssa Haynes", shift: 0 },
+{ initials: "SP", name: "Sandra Polk", shift: 0 },
+{ initials: "DS", name: "Dustin Stevart", shift: 0 },
+{ initials: "KNH", name: "Kenedi Harris", shift: 0 },
+{ initials: "JR", name: "Jennifer Ramirez", shift: 0 },
+{ initials: "AR", name: "Angel Rodriguez", shift: 0 },
+{ initials: "AP", name: "Arionna Phillips", shift: 0 },
+{ initials: "MA", name: "Michelle Abraham", shift: 0 },
+{ initials: "SZ", name: "Svitla Zhernakova", shift: 0 },
+{ initials: "MF", name: "Mark Fisher", shift: 0 },
+{ initials: "WB", name: "Wesley Box", shift: 0 },
+{ initials: "GD", name: "Gracemika Douglas", shift: 0 },
+{ initials: "CV", name: "Carmalthe Victonin", shift: 0 },
+{ initials: "CN", name: "Coralie Natia", shift: 0 },
+{ initials: "KMH", name: "Kejuan Hawkins", shift: 0 },
+{ initials: "NM", name: "Moise Ntizo", shift: 0 },
+{ initials: "CNH", name: "Chloe Nicole Hinkle", shift: 0 },
+{ initials: "CW", name: "Charles Webb", shift: 0 },
+{ initials: "CSF", name: "Christopher Sherrad", shift: 0 },
+{ initials: "OS", name: "Okalani Stegall", shift: 0 },
+{ initials: "SB", name: "Steven Best", shift: 0 },
+{ initials: "CEA", name: "Cara Adams", shift: 0 },
+{ initials: "AL", name: "Andrew Lowery", shift: 0 },
+{ initials: "BW", name: "Brandie Wiggins", shift: 0 },
+{ initials: "JL", name: "Jessica Lopez", shift: 0 },
+{ initials: "JD", name: "James Drury", shift: 0 },
+{ initials: "AP", name: "Amelia Perry", shift: 0 },
+{ initials: "BN", name: "Betty Ntambukulu", shift: 0 },
+{ initials: "LC", name: "Luke Cornett", shift: 0 },
+{ initials: "CD", name: "Charles Dugan", shift: 0 },
+{ initials: "JK", name: "Jamison Keller", shift: 0 },
+{ initials: "KL", name: "Katelyn Luster", shift: 0 },
+{ initials: "PM", name: "Prescila Malenga", shift: 0 },
+{ initials: "LB", name: "Leandre Brown", shift: 0 },
+{ initials: "JLM", name: "Jamie Morris", shift: 0 },
+{ initials: "TS", name: "Tyavez Smith", shift: 0 },
+{ initials: "AKB", name: "Angel King", shift: 0 },
+{ initials: "VINN", name: "Valmie Ipdevert Neraa", shift: 0 },
+{ initials: "SM", name: "Solange Mahoro", shift: 0 },
+{ initials: "LKM", name: "Leia Mitchell", shift: 0 },
+{ initials: "JB", name: "Jacqueline Brigsby", shift: 0 },
+{ initials: "EN", name: "Eric Ndaysis", shift: 0 },
+{ initials: "MRV", name: "Man'a Ramirez Vazquez", shift: 0 },
+{ initials: "KM", name: "Keondre Moore", shift: 0 },
+{ initials: "EH", name: "Eric M Habakuki", shift: 0 },
+{ initials: "CT", name: "Courtney Thomas", shift: 0 },
+{ initials: "JL", name: "Jasmine Lee", shift: 0 },
+{ initials: "RW", name: "Rashai Wimsatt", shift: 0 },
+{ initials: "BB", name: "Bamala Bonkingo", shift: 0 },
+{ initials: "AN", name: "Alice Nyiramugisha", shift: 0 },
+{ initials: "FN", name: "Faustin Nuayisha", shift: 0 },
+{ initials: "PK", name: "Parfait Kabaya", shift: 0 },
+{ initials: "OAG", name: "Oscar Garcia", shift: 0 },
+{ initials: "BAW", name: "Bashan Williams", shift: 0 },
+{ initials: "AN", name: "Aimee Nyaminini", shift: 0 },
+{ initials: "NS", name: "Nhlamuld Shitsavi", shift: 0 },
+{ initials: "EM", name: "Ernestina Morales", shift: 0 },
+{ initials: "DN", name: "David Norvell", shift: 0 },
+{ initials: "SPR/SRR", name: "Steven Richards", shift: 0 },
+{ initials: "KG", name: "Kathy Garcia", shift: 0 },
+{ initials: "KC", name: "Kierra Clark", shift: 0 },
+{ initials: "ES", name: "Enrique Saldana", shift: 0 },
+{ initials: "LTJ", name: "Leon Jones", shift: 0 },
+{ initials: "AJB", name: "Andrew Bailey", shift: 0 },
+{ initials: "OA", name: "Olga Assa", shift: 0 },
+{ initials: "WHW", name: "Warren Hudson Wright", shift: 0 },
+{ initials: "NTC", name: "Nyanna Cooper", shift: 0 },
+{ initials: "KAL/KQL", name: "Kawan Lewis", shift: 0 },
+{ initials: "SD", name: "Sanquenetta Davis", shift: 0 },
+{ initials: "CS", name: "Carrie Shannon", shift: 0 },
+{ initials: "SAG", name: "Silvia Garrett", shift: 0 },
+{ initials: "DC", name: "Destin Clark", shift: 0 },
+{ initials: "BPS", name: "Brenda Sanchez", shift: 0 },
+{ initials: "BRD", name: "Brian Dillard", shift: 0 },
+{ initials: "MG", name: "Michael Gould", shift: 0 },
+{ initials: "KD", name: "Kalinda Davis", shift: 0 },
+{ initials: "CWN", name: "Curt Norgaard", shift: 0 },
+{ initials: "JH", name: "Jason Hyland", shift: 0 },
+{ initials: "WJM", name: "William J Moneypenny", shift: 0 },
+{ initials: "MB/BM", name: "Bertin Mugezi", shift: 0 },
+{ initials: "ANG/AN", name: "Augustin Ngarukiyimana", shift: 0 },
+{ initials: "GVM", name: "Guadalupe Miranda", shift: 0 },
+{ initials: "DH", name: "Danielle Hockensmith", shift: 1 },
+{ initials: "MH", name: "Meghan Holt", shift: 1 },
+{ initials: "KM", name: "Kyndal Morris", shift: 1 },
+{ initials: "SF", name: "Scott Frasure", shift: 1 },
+{ initials: "BW", name: "Belinda Williams", shift: 1 },
+{ initials: "AB", name: "Antoine Beatty", shift: 1 },
+{ initials: "JN", name: "Julins Nooman", shift: 1 },
+{ initials: "JB", name: "Joel Bledsoe", shift: 1 },
+{ initials: "SC", name: "Shelliss Chestnut", shift: 1 },
+{ initials: "DI", name: "Don Du Ciel Ingabire", shift: 1 },
+{ initials: "RR", name: "Rebecca Rucker", shift: 1 },
+{ initials: "TG", name: "Trista Goodrich", shift: 1 },
+{ initials: "WC", name: "Walt Chenault", shift: 1 },
+{ initials: "IS", name: "Isabella Segui", shift: 1 },
+{ initials: "SW", name: "Scott Walters", shift: 1 },
+{ initials: "VMN", name: "Victor M NUNEZ", shift: 1 },
+{ initials: "MP", name: "Mario Pantoja", shift: 1 },
+{ initials: "IZ", name: "Izmael Martnez", shift: 1 },
+{ initials: "HC", name: "Hilda Cruz", shift: 1 },
+{ initials: "LF", name: "Willie Lee Floyd", shift: 1 },
+{ initials: "JD", name: "James Dean", shift: 1 },
+{ initials: "BD", name: "Belinda Dean", shift: 1 },
+{ initials: "JDM", name: "Juste Mboumba-Dhemby", shift: 1 },
+{ initials: "CH", name: "Charlene Hicks", shift: 1 },
+{ initials: "FK", name: "Faye King", shift: 1 },
+{ initials: "RL", name: "Russell Leitch", shift: 1 },
+{ initials: "KTB", name: "Kendra Booker", shift: 1 },
+{ initials: "JC", name: "John Campbell", shift: 1 },
+{ initials: "CA", name: "Cesar Chavez", shift: 1 },
+{ initials: "JCLCH", name: "Jacareli Lanzas ", shift: 1 },
+{ initials: "MILCH", name: "Martha Lanzas", shift: 1 },
+{ initials: "CA", name: "Cara Adams", shift: 1 },
+{ initials: "TM", name: "Tamara Muke Miss-Enza", shift: 1 },
+{ initials: "CO", name: "Christopher Onay", shift: 1 },
+{ initials: "ARC", name: "Alexis Collins", shift: 1 },
+{ initials: "MN", name: "Merci Ndabaramiye", shift: 1 },
+{ initials: "CM", name: "Chilove-Mortimer", shift: 1 },
+{ initials: "IK", name: "Isiah Keulties", shift: 1 },
+{ initials: "FB", name: "Fifi Bamato", shift: 1 },
+{ initials: "LCS", name: "Lance Sharp", shift: 1 },
+{ initials: "FK", name: "Faye King", shift: 1 },
+{ initials: "BDS", name: "Bethany Spalding", shift: 1 },
+{ initials: "AMT", name: "Alex Thompson", shift: 1 },
+{ initials: "CWN", name: "Charmi W Ntoto", shift: 1 },
+{ initials: "CK", name: "Cecile Kapaya", shift: 1 },
+{ initials: "BI", name: "Belfi Ibongoki", shift: 1 },
+{ initials: "SF", name: "Sean Figerraa", shift: 1 },
+{ initials: "HNM", name: "Hortence Malenga", shift: 1 },
+{ initials: "MN", name: "Museveni Ndayishimiye", shift: 1 },
+{ initials: "SD", name: "Solange Dohinzbaze", shift: 1 },
+{ initials: "CEM", name: "Christian Mutondo", shift: 1 },
+{ initials: "BDT", name: "Bethany Thompson", shift: 1 },
+{ initials: "EGM", name: "Emily Morrison", shift: 1 },
+{ initials: "AB", name: "Anicet Byiringiro", shift: 1 },
+{ initials: "MLM", name: "Mary Murillo", shift: 1 },
+{ initials: "BS", name: "Brandon Smallwood", shift: 1 },
+{ initials: "IS", name: "Ingrid Sanchez", shift: 1 },
+{ initials: "JLB", name: "Jamarra Burnside", shift: 1 },
+{ initials: "NID", name: "Natasha Deerwester", shift: 1 },
+{ initials: "WBMC", name: "Willa Coleman", shift: 1 },
+{ initials: "JCB", name: "Jaidan Brown", shift: 1 },
+{ initials: "IM", name: "Innocent Murenzi", shift: 1 },
+{ initials: "JTA", name: "Jose Toral", shift: 1 },
+{ initials: "YS", name: "Yvet Saleti", shift: 1 },
+{ initials: "DMS", name: "Destiney Marie Stguer", shift: 1 },
+{ initials: "MJV", name: "Michael Vanhoose", shift: 1 },
+{ initials: "AA", name: "Autumn Allen", shift: 1 },
+{ initials: "KVG", name: "George Vasques", shift: 1 },
+{ initials: "LS", name: "Laiquelyn Smith", shift: 1 },
+{ initials: "MT", name: "Myjtere Thethe", shift: 1 },
+{ initials: "NSN", name: "Numunyere Nzerhumunu", shift: 1 },
+{ initials: "JM", name: "Javanna Moore", shift: 1 },
+{ initials: "JM", name: "Joseph Mukeba", shift: 1 },
+{ initials: "nan", name: "Melissa Morales", shift: 1 },
+{ initials: "DM", name: "David Miller", shift: 1 },
+{ initials: "ER", name: "Eric Robinson", shift: 1 },
+{ initials: "YG", name: "Yehci Garcia", shift: 1 },
+{ initials: "JV", name: "Josefina Viveros", shift: 1 },
+{ initials: "JD", name: "Josias Donga", shift: 1 },
+{ initials: "BD", name: "Branham Donga", shift: 1 },
+{ initials: "MM", name: "Mariana Miranda", shift: 1 },
+{ initials: "EMMP", name: "Ernestina Morales", shift: 1 },
+{ initials: "CM", name: "Carmene Mabamvu", shift: 1 },
+{ initials: "YM", name: "Yuliana Lopez", shift: 1 },
+{ initials: "JMJ", name: "Jasmine Medina", shift: 1 },
+{ initials: "NI", name: "Irakoze Nkundabantu", shift: 1 },
+{ initials: "DB", name: "Daveyba Blandon", shift: 1 },
+{ initials: "JA", name: "Jennifer Amayo", shift: 1 },
+{ initials: "MB", name: "Michael Beechem", shift: 1 },
+{ initials: "RDS", name: "Richard Smith", shift: 1 },
+{ initials: "CWA", name: "Collin Amburgey", shift: 1 },
+{ initials: "CW", name: "Christina White", shift: 1 },
+{ initials: "SER", name: "Susan Reynolds", shift: 1 },
+{ initials: "LRL", name: "Lizzet Rosado", shift: 1 },
+{ initials: "OB", name: "Ofelia Bamaca", shift: 1 },
+{ initials: "CM", name: "Clarisse Mahoro", shift: 1 },
+{ initials: "EOT", name: "Esther Maria", shift: 1 },
+{ initials: "HM", name: "Henry Mulumba", shift: 2 },
+{ initials: "CF", name: "Charles Fullwood", shift: 2 },
+{ initials: "AC", name: "Alexis Corbett", shift: 2 },
+{ initials: "RA", name: "Robin Arnett", shift: 2 },
+{ initials: "BM", name: "Bill Mckinney", shift: 2 },
+{ initials: "BN", name: "Bob Nagorski", shift: 2 },
+{ initials: "JR", name: "Jessica Robinson", shift: 2 },
+{ initials: "OG", name: "Olivia Grot", shift: 2 },
+{ initials: "CO", name: "Charles O'toole", shift: 2 },
+{ initials: "RW", name: "Ryan Williamson", shift: 2 },
+{ initials: "FK", name: "Florence Kyalondawa", shift: 2 },
+{ initials: "AN", name: "Antoine Ntoto", shift: 2 },
+{ initials: "CR", name: "Cesarea Resendiz", shift: 2 },
+{ initials: "JCG", name: "Jean Gonzalez", shift: 2 },
+{ initials: "RHW", name: "Roy Woods", shift: 2 },
+{ initials: "ATL", name: "Aime Tambu", shift: 2 },
+{ initials: "CN", name: "Cesar Ntumakababa", shift: 2 },
+{ initials: "AR", name: "Austin Rickson", shift: 2 },
+{ initials: "YN", name: "Yannick Dimbu", shift: 2 },
+{ initials: "DM", name: "Deontai Murphy", shift: 2 },
+{ initials: "AK", name: "Anthony Kalonji", shift: 2 },
+{ initials: "SM", name: "Selemani Mwanamulenda", shift: 2 },
+{ initials: "SF", name: "Seth Frimpong", shift: 2 },
+{ initials: "NR", name: "Rahab Nkundizanye", shift: 2 },
+{ initials: "AI", name: "Alliance Iribagiza", shift: 2 },
+{ initials: "AU", name: "Alice Uwera", shift: 2 },
+{ initials: "FN", name: "Faustin Ndayisenga", shift: 2 },
+{ initials: "DW/DAW", name: "Darrion Wimsatt", shift: 2 },
+{ initials: "OS", name: "Oliver Sebakumirizi", shift: 2 },
+{ initials: "JS", name: "Joel Sola", shift: 2 },
+{ initials: "SR", name: "Sebastian Ramirez", shift: 2 },
+{ initials: "BPN", name: "Billy Niyomuhoza", shift: 2 },
+{ initials: "TM", name: "Theogene Mugisha", shift: 2 },
+{ initials: "MK", name: "Mark Kadogo", shift: 2 },
+{ initials: "FJM", name: "Fidele Mahinanda", shift: 2 },
+{ initials: "CMM", name: "Carlos Macaia", shift: 2 },
+{ initials: "SK", name: "Sekou Kabasu", shift: 2 },
+{ initials: "JKL", name: "Job Lima", shift: 2 },
+{ initials: "CK", name: "Charmelle Kindeke", shift: 2 },
+{ initials: "NAD", name: "Naijah Davis", shift: 2 },
+{ initials: "BB", name: "Burton Braxton", shift: 2 },
+{ initials: "KW", name: "Kyle Walters", shift: 2 },
+{ initials: "PN", name: "Patrick Nyenbele", shift: 2 },
+{ initials: "DRP/DP", name: "Deion Perkins", shift: 2 },
+{ initials: "AW", name: "Antione Watkins", shift: 2 },
+{ initials: "RH", name: "Ricardo Harris", shift: 2 },
+{ initials: "SK", name: "Samuel Kabasu", shift: 2 },
+{ initials: "EB", name: "Enock Byringo", shift: 2 },
+{ initials: "JSH/JS", name: "Justin Shema", shift: 2 },
+{ initials: "LDG", name: "Leoanrdo Gomez", shift: 2 },
+{ initials: "RG", name: "Raymundo Gomez", shift: 2 },
+{ initials: "GM", name: "Giles Mula", shift: 2 },
+{ initials: "PF", name: "Prince Foffie", shift: 2 },
+{ initials: "KI", name: "Kamanzi Intore", shift: 2 },
+{ initials: "SMM", name: "Sakina Maovu", shift: 2 },
+{ initials: "AT", name: "Angelic Twishime", shift: 2 },
+{ initials: "AM", name: "Alice Mbabazi", shift: 2 },
+{ initials: "FG", name: "Florence Giramata", shift: 2 },
+{ initials: "EP", name: "Exandieu Pharisien", shift: 2 },
+{ initials: "MWMJR", name: "Marlon Morris", shift: 2 },
+{ initials: "MEB", name: "Maliek Brown", shift: 2 },
+{ initials: "JAD", name: "Justice Dhemby", shift: 2 },
+{ initials: "DAW", name: "Darrion Wimsatt", shift: 2 },
+{ initials: "LU", name: "Laurene Uwase", shift: 2 },
+{ initials: "JNL", name: "Julio Lopez", shift: 2 },
+{ initials: "CND", name: "Candice Denny", shift: 2 },
+{ initials: "AK", name: "Alphonse Kasonga", shift: 2 },
+{ initials: "CM", name: "Coral Mullins", shift: 3 },
+{ initials: "AM", name: "Augustin Mpiana", shift: 3 },
+{ initials: "YH", name: "Yessenia Hernandez", shift: 3 },
+{ initials: "YHR", name: "Yvette Hernandez", shift: 3 },
+{ initials: "KNH", name: "Keren Natua", shift: 3 },
+{ initials: "AM", name: "Andre Moore", shift: 3 },
+{ initials: "MW", name: "Maria Wilder", shift: 3 },
+{ initials: "EW", name: "Ebony Williams", shift: 3 },
+{ initials: "WFW", name: "William Wathen", shift: 3 },
+{ initials: "JRL", name: "Jalen R Loften", shift: 3 },
+{ initials: "MAM", name: "Miguel  Mota", shift: 3 },
+{ initials: "LN", name: "Lucia Ntalani", shift: 3 },
+{ initials: "COT/CO", name: "Cedrick Onamboya", shift: 3 },
+{ initials: "MMA", name: "Michael Matthew Arnold", shift: 3 },
+{ initials: "FM", name: "Freddy Matata", shift: 3 },
+{ initials: "PB", name: "Patrick Bisore", shift: 3 },
+{ initials: "RB", name: "Benie Rosie", shift: 3 },
+{ initials: "RM", name: "Ruth Mayama", shift: 3 },
+{ initials: "NZ", name: "Nancy Zoni", shift: 3 },
+{ initials: "MK", name: "Massaki Kiala", shift: 3 },
+{ initials: "MC", name: "Mimosa Canda", shift: 3 },
+{ initials: "RB", name: "Rosalia Bustamonte", shift: 3 },
+{ initials: "JDD", name: "Derek Deboard", shift: 3 },
+{ initials: "BJH", name: "Brandon J Hobbs", shift: 3 },
+{ initials: "TST", name: "Tonia Thorpe", shift: 3 },
+{ initials: "DLS", name: "Deanna Soto", shift: 3 },
+{ initials: "VLS", name: "Vivian Spicer", shift: 3 },
+{ initials: "BMG/BG", name: "Bryanna Garrett", shift: 3 },
+{ initials: "RWP", name: "Robert Page", shift: 3 },
+{ initials: "MJB", name: "Massiel Juarez", shift: 3 },
+{ initials: "TWW", name: "Tyler Wheeler", shift: 3 },
+{ initials: "LDJ", name: "Lindsey Darah Johnson", shift: 3 },
+{ initials: "WEN", name: "William Nesseirose", shift: 3 },
+{ initials: "SM", name: "Suzanna Mahinanda", shift: 3 },
+{ initials: "JNK/JK", name: "Judith Nday", shift: 3 },
+{ initials: "CM", name: "Claude Mahinanda", shift: 3 },
+{ initials: "MH", name: "Mussa Hangi", shift: 3 },
+{ initials: "PPT", name: "Paige P. Taylor", shift: 3 },
+{ initials: "ADR", name: "Aasiyah Richardson", shift: 3 },
+{ initials: "EK", name: "Eduardo Kifembe", shift: 3 },
+{ initials: "ML", name: "Matthew Long", shift: 3 },
+{ initials: "NDD", name: "Nichole Dahl", shift: 3 },
+{ initials: "ARC", name: "Astacia Chadwell", shift: 3 },
+{ initials: "AKL", name: "Adrienne Lavizzio", shift: 3 },
+{ initials: "APM/AM", name: "Affrico Morgan", shift: 3 },
+{ initials: "AEO/AO", name: "Angela Overstreet", shift: 3 },
+{ initials: "CMJ", name: "Candace Jackson", shift: 3 },
+{ initials: "MTB/MB", name: "Mariah Burrage", shift: 3 },
+{ initials: "BRP", name: "Brittany Ramirez", shift: 3 },
+{ initials: "ECF", name: "Edgar Cardenas", shift: 3 },
+{ initials: "BK", name: "Brooke Kinkead", shift: 3 },
+{ initials: "RR", name: "Rukundo  Rudederi", shift: 3 },
+{ initials: "RB", name: "Robert Brown", shift: 3 },
+{ initials: "AY", name: "Abeline Youmbi", shift: 3 },
+{ initials: "PW", name: "Patrick Walkers", shift: 3 },
+{ initials: "CI", name: "Celia Izaguire", shift: 3 },
+{ initials: "MM", name: "Merlin Moussavou", shift: 3 },
+{ initials: "JEM", name: "Jaxen Meadows", shift: 3 },
+{ initials: "SAP", name: "Samantha Payne", shift: 3 },
+{ initials: "YGC", name: "Yeilien Cabrailes", shift: 3 },
+{ initials: "ICQ", name: "Ismaidulis Corrales", shift: 3 },
+{ initials: "REMH", name: "Robert Merino", shift: 3 },
+{ initials: "CTK", name: "Cathy Kathanga", shift: 3 },
+{ initials: "IG", name: "Isiac", shift: 3 },
+{ initials: "CHT", name: "Catty Terry", shift: 3 },
+{ initials: "GE", name: "Gervir Escalona", shift: 3 },
+{ initials: "IMF", name: "Isael Martinez", shift: 3 },
+{ initials: "SMF", name: "Silvia Michelle Flores", shift: 3 },
+{ initials: "SJD", name: "Sandra Doyle", shift: 3 },
+{ initials: "MK", name: "Michele Kapeline", shift: 4 },
+{ initials: "DLP", name: "Deionta Perkins", shift: 4 },
+{ initials: "JL", name: "Justin Luck", shift: 4 },
+{ initials: "MAC", name: "Magen Cortez", shift: 4 },
+{ initials: "LS", name: "Leon Salapambe", shift: 4 },
+{ initials: "ED", name: "Earl Duncan", shift: 4 },
+{ initials: "ASM", name: "Abundio Mendez", shift: 4 },
+{ initials: "TEF", name: "Thomas E Fletcher", shift: 4 },
+{ initials: "LA", name: "Lamories L Adams", shift: 4 },
+{ initials: "MC", name: "Maurice Collins", shift: 4 },
+{ initials: "JP", name: "Josh Pichard", shift: 4 },
+{ initials: "MM", name: "Makayla Mays", shift: 4 },
+{ initials: "LM", name: "Leon Mosinza", shift: 4 },
+{ initials: "PG", name: "Pedro Gomes", shift: 4 },
+{ initials: "GE", name: "Gasto Eninga", shift: 4 },
+{ initials: "ME", name: "Mwenebolongo Eninga", shift: 4 },
+{ initials: "DM", name: "Dorotea Maria", shift: 4 },
+{ initials: "FM", name: "Fahila Amangalam", shift: 4 },
+{ initials: "MLM", name: "Micheline Mabienga", shift: 4 },
+{ initials: "AGN", name: "Alzir Grace Ntoto", shift: 4 },
+{ initials: "ODS", name: "Dakota Sizemore", shift: 4 },
+{ initials: "NL", name: "Nsimba Lema", shift: 4 },
+{ initials: "JM", name: "Jessica Muleba", shift: 4 },
+{ initials: "AR", name: "Anthony Reed", shift: 4 },
+{ initials: "DG", name: "Dakota Gault", shift: 4 },
+{ initials: "AG", name: "Alphonsine Godhasdoneit", shift: 4 },
+{ initials: "NN", name: "Nadege Nzengani", shift: 4 },
+{ initials: "RL", name: "Raul Lembre", shift: 4 },
+{ initials: "AM", name: "Aristote Mateteizeidi", shift: 4 },
+{ initials: "EM", name: "Exauce Mayo Wamayo", shift: 4 },
+{ initials: "AK", name: "Alice Kemadjou", shift: 4 },
+{ initials: "GE", name: "Glory Enow", shift: 4 },
+{ initials: "TH", name: "Thomas Hensley", shift: 4 },
+{ initials: "GWD", name: "George Owusu", shift: 4 },
+{ initials: "WD", name: "Wedson Derat", shift: 4 },
+{ initials: "CB", name: "Chrispin Bombo", shift: 4 },
+{ initials: "MW", name: "Matthew Williams", shift: 4 },
+{ initials: "KLM", name: "Kartise Mayberry", shift: 4 },
+{ initials: "SMJ", name: "Shaqnita James", shift: 4 },
+{ initials: "NRG", name: "Natalie Goodan", shift: 4 },
+{ initials: "DDM", name: "David Mason", shift: 4 },
+{ initials: "AME", name: "Alicia Escalera", shift: 4 },
+{ initials: "DDW", name: "Donnell Williams", shift: 4 },
+{ initials: "VWH", name: "Victor Howard", shift: 4 },
+{ initials: "MB", name: "Marquise Boykin", shift: 4 },
+{ initials: "JM", name: "Juma Mrisho", shift: 4 },
+{ initials: "DN", name: "Dreudonne Nzambimuna", shift: 4 },
+{ initials: "KP", name: "Kaula Phipps", shift: 4 },
+{ initials: "RC", name: "Richard Clark", shift: 4 },
+{ initials: "ATW", name: "Aidan Whalen", shift: 4 },
+{ initials: "MTP", name: "Michael Pye", shift: 4 },
+{ initials: "RS", name: "Rudy Sandaval", shift: 4 },
+{ initials: "DM", name: "Divine Mukeba", shift: 4 },
+{ initials: "AK", name: "Aminata Kaba", shift: 4 },
+{ initials: "MM", name: "Miguel Muanza", shift: 4 },
+{ initials: "LH", name: "Lillian Hernandez", shift: 4 },
+{ initials: "AO", name: "Astrid Omoy", shift: 4 },
+{ initials: "AA", name: "Amie Amadotor", shift: 4 },
+{ initials: "LKT", name: "Lashonda Taylor", shift: 4 },
+{ initials: "BH", name: "Brian Hampton", shift: 4 },
+{ initials: "NF", name: "Neal Ferrin", shift: 0 },
+{ initials: "OC", name: "Olivia Clark", shift: 0 },
+{ initials: "HM", name: "Hannah Mccleese", shift: 0 },
+{ initials: "AA", name: "Andres Aravjo", shift: 0 },
+{ initials: "AP", name: "Adalbeto Perez", shift: 0 },
+{ initials: "AJA", name: "Alejandro Arroyo", shift: 0 },
+{ initials: "SA", name: "Steve Arnett", shift: 0 },
+{ initials: "LL", name: "Levi Lambright", shift: 0 },
+{ initials: "SBM", name: "Sierra Mccoy", shift: 0 },
+{ initials: "RAS", name: "Rodger Salyers", shift: 0 },
+{ initials: "AE", name: "Ashley Estridge", shift: 0 },
+{ initials: "RF", name: "Robert Fuentes", shift: 0 },
+{ initials: "RLS", name: "Robert Sillman", shift: 0 },
+{ initials: "MRE", name: "M Rogers Ii", shift: 0 },
+{ initials: "GE", name: "Godwin Emmanuel", shift: 0 },
+{ initials: "JGR", name: "Jessica Resendiz", shift: 0 },
+{ initials: "JBG", name: "Jamica B Garcia", shift: 0 },
+{ initials: "VM", name: "Viktoriya Moisy", shift: 0 },
+{ initials: "SK", name: "Subes Khaniya", shift: 0 },
+{ initials: "SM", name: "Martha Tovar", shift: 0 },
+{ initials: "CD", name: "Carole Doulos", shift: 0 },
+{ initials: "MN", name: "Marvis Nyiah", shift: 0 },
+{ initials: "RA", name: "Ruth Adidi", shift: 0 },
+{ initials: "BMK", name: "Beneziane Maketa", shift: 0 },
+{ initials: "JIR", name: "Joson Reyez", shift: 1 },
+{ initials: "NE", name: "Nathan Elwood", shift: 0 },
+{ initials: "JM", name: "Joel Martin", shift: 1 },
+    ];
+
+    const input = document.getElementById('initialsInput');
+    const dropdown = document.getElementById('nameDropdown');
+    const tableBody = document.querySelector('#selectionTable tbody');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    let count = 1;
+
+    input.addEventListener('input', () => {
+      const query = input.value.trim().toUpperCase();
+      dropdown.innerHTML = '';
+
+      const defaultOption = document.createElement('option');
+      defaultOption.disabled = true;
+      defaultOption.selected = true;
+      defaultOption.textContent = 'Select a name...';
+      dropdown.appendChild(defaultOption);
+
+      if (query === '') return;
+
+      const matches = people.filter(p => p.initials.startsWith(query));
+
+      matches.forEach(person => {
+        const option = document.createElement('option');
+        option.value = person.initials;
+        option.textContent = `(${person.initials}) ${person.name} ${person.shift} Shift`;
+        option.dataset.name = person.name;
+        option.dataset.shift = person.shift;
+        dropdown.appendChild(option);
+      });
+    });
+
+    dropdown.addEventListener('change', (event) => {
+      const selectedOption = event.target.selectedOptions[0];
+      const name = selectedOption.dataset.name;
+      const shift = selectedOption.dataset.shift;
+      const initials = selectedOption.value;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${count++}</td>
+        <td>${name}</td>
+        <td>${initials}</td>
+        <td>${shift}</td>
+        <td><button class="delete-btn" title="Remove this entry">&times;</button></td>
+      `;
+      tableBody.appendChild(row);
+
+      // Attach click handler to delete button
+      row.querySelector('.delete-btn').addEventListener('click', () => {
+        row.remove();
+        updateRowNumbers();
+      });
+
+      // Clear input and dropdown after selection
+      input.value = '';
+      dropdown.innerHTML = '<option disabled selected>Select a name...</option>';
+    });
+
+    refreshBtn.addEventListener('click', () => {
+      tableBody.innerHTML = '';
+      count = 1;
+    });
+
+    function updateRowNumbers() {
+      count = 1;
+      [...tableBody.querySelectorAll('tr')].forEach(row => {
+        row.cells[0].textContent = count++;
+      });
+    }
+  </script>
+
+</body>
+</html>
