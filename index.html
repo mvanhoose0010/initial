@@ -26,7 +26,7 @@
       padding: 10px;
       width: 200px;
       position: relative;
-      z-index: 2; /* keep input on top */
+      z-index: 2;
     }
     #nameDropdown {
       font-size: 18px;
@@ -53,7 +53,7 @@
     th {
       background: #eee;
     }
-    #refreshBtn {
+    #refreshBtn, #copyBtn {
       width: auto;
       background-color: #d9534f;
       color: white;
@@ -63,6 +63,13 @@
       padding: 10px 15px;
       font-size: 16px;
       max-width: 650px;
+      display: block;
+    }
+    #copyBtn {
+      background-color: #5cb85c;
+    }
+    #copyBtn:hover {
+      background-color: #4cae4c;
     }
     #refreshBtn:hover {
       background-color: #c9302c;
@@ -115,8 +122,9 @@
   </table>
 
   <button id="refreshBtn">🔄 Refresh Grid</button>
+  <button id="copyBtn">📋 Copy Name, Initials, Shift</button>
 
-  <script>
+ <script>
     const people = [
 { initials: "DH", name: "Danielle Hockensmith", shift: 1 },
 { initials: "MH", name: "Meghan Holt", shift: 1 },
@@ -592,6 +600,7 @@
     const dropdown = document.getElementById('nameDropdown');
     const tableBody = document.querySelector('#selectionTable tbody');
     const refreshBtn = document.getElementById('refreshBtn');
+    const copyBtn = document.getElementById('copyBtn');
 
     let count = 1;
 
@@ -635,13 +644,11 @@
       `;
       tableBody.appendChild(row);
 
-      // Attach click handler to delete button
       row.querySelector('.delete-btn').addEventListener('click', () => {
         row.remove();
         updateRowNumbers();
       });
 
-      // Clear input and dropdown after selection
       input.value = '';
       dropdown.innerHTML = '<option disabled selected>Select a name...</option>';
     });
@@ -649,6 +656,22 @@
     refreshBtn.addEventListener('click', () => {
       tableBody.innerHTML = '';
       count = 1;
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const rows = tableBody.querySelectorAll('tr');
+      let tsv = "Name\tInitials\tShift\n";
+
+      rows.forEach(row => {
+        const name = row.cells[1]?.innerText.trim();
+        const initials = row.cells[2]?.innerText.trim();
+        const shift = row.cells[3]?.innerText.trim();
+        tsv += `${name}\t${initials}\t${shift}\n`;
+      });
+
+      navigator.clipboard.writeText(tsv)
+        .then(() => alert("Copied to clipboard in tab-separated format!"))
+        .catch(err => console.error("Clipboard copy failed:", err));
     });
 
     function updateRowNumbers() {
@@ -661,4 +684,3 @@
 
 </body>
 </html>
-
