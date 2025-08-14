@@ -5,75 +5,101 @@
   <title>Initials Lookup + Tracker Side-by-Side</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
       padding: 20px;
-      background: #1656AD;
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f7830f, #4b09e6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    /* Glass panel style */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
     label {
       font-weight: bold;
       margin-bottom: 5px;
       display: inline-block;
+      color: white;
     }
+
     .input-dropdown-container {
       display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
+      gap: 20px;
+      margin-bottom: 20px;
       align-items: flex-start;
-      max-width: 650px;
+      max-width: 700px;
+      width: 100%;
     }
-    #initialsInput {
-      font-size: 18px;
+
+    #initialsInput, #nameDropdown {
+      font-size: 16px;
       padding: 10px;
-      width: 200px;
-      position: relative;
-      z-index: 2;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.8);
     }
+
     #nameDropdown {
-      font-size: 18px;
-      padding: 10px;
-      width: 400px;
-      size: 5;
-      position: relative;
-      top: 0;
-      z-index: 1;
+      width: 100%;
+      min-width: 300px;
     }
+
     table {
       border-collapse: collapse;
       margin-top: 20px;
       width: 100%;
-      max-width: 650px;
-      background: #F0C807;
+      max-width: 700px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      overflow: hidden;
     }
+
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid rgba(0,0,0,0.1);
       padding: 10px;
       text-align: left;
       vertical-align: middle;
     }
+
     th {
-      background: #eee;
+      background: rgba(255, 255, 255, 0.6);
+      font-weight: bold;
     }
+
     #refreshBtn, #copyBtn {
       width: auto;
-      background-color: #d9534f;
+      background: linear-gradient(135deg, #b9d408, #ff4b2b);
       color: white;
       border: none;
       margin-top: 10px;
       cursor: pointer;
-      padding: 10px 15px;
+      padding: 10px 20px;
       font-size: 16px;
-      max-width: 650px;
-      display: block;
+      border-radius: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     #copyBtn {
-      background-color: #5cb85c;
+      background: linear-gradient(135deg, #56ab2f, #a8e063);
     }
-    #copyBtn:hover {
-      background-color: #4cae4c;
+
+    #copyBtn:hover, #refreshBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-    #refreshBtn:hover {
-      background-color: #c9302c;
-    }
+
     .delete-btn {
       background-color: transparent;
       border: none;
@@ -85,6 +111,7 @@
       padding: 0 6px;
       user-select: none;
     }
+
     .delete-btn:hover {
       color: darkred;
     }
@@ -92,7 +119,7 @@
 </head>
 <body>
 
-  <div class="input-dropdown-container">
+  <div class="glass-panel input-dropdown-container">
     <div>
       <label for="initialsInput">Enter Initials:</label>
       <input type="text" id="initialsInput" placeholder="e.g. MV" autocomplete="off" />
@@ -106,27 +133,29 @@
     </div>
   </div>
 
-  <table id="selectionTable" aria-label="Selected names table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Initials</th>
-        <th>Shift</th>
-        <th>Remove</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Selected rows go here -->
-    </tbody>
-  </table>
+  <div class="glass-panel" style="width: 100%; max-width: 700px;">
+    <table id="selectionTable" aria-label="Selected names table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Initials</th>
+          <th>Shift</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Selected rows go here -->
+      </tbody>
+    </table>
 
-  <button id="refreshBtn">🔄 Refresh Grid</button>
-  <button id="copyBtn">📋 Copy Name, Initials, Shift</button>
+    <button id="refreshBtn">🔄 Refresh Grid</button>
+    <button id="copyBtn">📋 Copy Name, Initials, Shift</button>
+  </div>
 
- <script>
+  <script>
     const people = [
-{ initials: "DH", name: "Danielle Hockensmith", shift: 1 },
+      { initials: "DH", name: "Danielle Hockensmith", shift: 1 },
 { initials: "MH", name: "Meghan Holt", shift: 1 },
 { initials: "KM", name: "Kyndal Morris", shift: 1 },
 { initials: "SF", name: "Scott Frasure", shift: 1 },
@@ -684,7 +713,3 @@
 
 </body>
 </html>
-
-
-
-
