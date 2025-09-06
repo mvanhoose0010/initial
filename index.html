@@ -9,13 +9,11 @@
       padding: 20px;
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg, #f7830f, #4b09e6);
+      background: linear-gradient(1035deg, #8a8fa8, #6974b5);
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-
-    /* Glass panel style */
     .glass-panel {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(12px);
@@ -25,14 +23,12 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.18);
     }
-
     label {
       font-weight: bold;
       margin-bottom: 5px;
       display: inline-block;
       color: white;
     }
-
     .input-dropdown-container {
       display: flex;
       gap: 20px;
@@ -41,7 +37,6 @@
       max-width: 700px;
       width: 100%;
     }
-
     #initialsInput, #nameDropdown {
       font-size: 16px;
       padding: 10px;
@@ -50,12 +45,7 @@
       outline: none;
       background: rgba(255, 255, 255, 0.8);
     }
-
-    #nameDropdown {
-      width: 100%;
-      min-width: 300px;
-    }
-
+    #nameDropdown { width: 100%; min-width: 300px; }
     table {
       border-collapse: collapse;
       margin-top: 20px;
@@ -65,19 +55,16 @@
       border-radius: 12px;
       overflow: hidden;
     }
-
     th, td {
       border: 1px solid rgba(0,0,0,0.1);
       padding: 10px;
       text-align: left;
       vertical-align: middle;
     }
-
     th {
       background: rgba(255, 255, 255, 0.6);
       font-weight: bold;
     }
-
     #refreshBtn, #copyBtn {
       width: auto;
       background: linear-gradient(135deg, #b9d408, #ff4b2b);
@@ -90,16 +77,13 @@
       border-radius: 8px;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
     #copyBtn {
       background: linear-gradient(135deg, #56ab2f, #a8e063);
     }
-
     #copyBtn:hover, #refreshBtn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
-
     .delete-btn {
       background-color: transparent;
       border: none;
@@ -111,20 +95,20 @@
       padding: 0 6px;
       user-select: none;
     }
-
-    .delete-btn:hover {
-      color: darkred;
+    .delete-btn:hover { color: darkred; }
+    .shift-header {
+      background: #ddd;
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-
   <div class="glass-panel input-dropdown-container">
     <div>
       <label for="initialsInput">Enter Initials:</label>
       <input type="text" id="initialsInput" placeholder="e.g. MV" autocomplete="off" />
     </div>
-
     <div>
       <label for="nameDropdown">Matching Names:</label>
       <select id="nameDropdown" size="14">
@@ -145,12 +129,19 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Selected rows go here -->
+        <!-- Shift sections -->
+        <tr class="shift-header"><td colspan="5">Shift 1</td></tr>
+        <tr class="shift-section" data-shift="1"></tr>
+        <tr class="shift-header"><td colspan="5">Shift 2</td></tr>
+        <tr class="shift-section" data-shift="2"></tr>
+        <tr class="shift-header"><td colspan="5">Shift 3</td></tr>
+        <tr class="shift-section" data-shift="3"></tr>
+        <tr class="shift-header"><td colspan="5">Shift 4</td></tr>
+        <tr class="shift-section" data-shift="4"></tr>
       </tbody>
     </table>
-
     <button id="refreshBtn">🔄 Refresh Grid</button>
-    <button id="copyBtn">📋 Copy Name, Initials, Shift</button>
+    <button id="copyBtn">📃 Copy Name, Initials, Shift</button>
   </div>
 
   <script>
@@ -626,33 +617,21 @@
 { initials: "ANG/AN", name: "Augustin Ngarukiyimana", shift: 0 },
 { initials: "GVM", name: "Guadalupe Miranda", shift: 0 },
     ];
-
     const input = document.getElementById('initialsInput');
     const dropdown = document.getElementById('nameDropdown');
-    const tableBody = document.querySelector('#selectionTable tbody');
     const refreshBtn = document.getElementById('refreshBtn');
     const copyBtn = document.getElementById('copyBtn');
-
     let count = 1;
 
     input.addEventListener('input', () => {
       const query = input.value.trim().toUpperCase();
-      dropdown.innerHTML = '';
-
-      const defaultOption = document.createElement('option');
-      defaultOption.disabled = true;
-      defaultOption.selected = true;
-      defaultOption.textContent = 'Select a name...';
-      dropdown.appendChild(defaultOption);
-
+      dropdown.innerHTML = '<option disabled selected>Select a name...</option>';
       if (query === '') return;
-
       const matches = people.filter(p => p.initials.startsWith(query));
-
       matches.forEach(person => {
         const option = document.createElement('option');
         option.value = person.initials;
-        option.textContent = `(${person.initials}) ${person.name} ${person.shift} Shift`;
+        option.textContent = `(${person.initials}) ${person.name} - Shift ${person.shift}`;
         option.dataset.name = person.name;
         option.dataset.shift = person.shift;
         dropdown.appendChild(option);
@@ -673,7 +652,9 @@
         <td>${shift}</td>
         <td><button class="delete-btn" title="Remove this entry">&times;</button></td>
       `;
-      tableBody.appendChild(row);
+
+      const shiftSection = document.querySelector(`.shift-section[data-shift="${shift}"]`);
+      shiftSection.parentNode.insertBefore(row, shiftSection.nextSibling);
 
       row.querySelector('.delete-btn').addEventListener('click', () => {
         row.remove();
@@ -685,39 +666,32 @@
     });
 
     refreshBtn.addEventListener('click', () => {
-      tableBody.innerHTML = '';
+      document.querySelectorAll('#selectionTable tbody tr:not(.shift-header):not(.shift-section)').forEach(tr => tr.remove());
       count = 1;
     });
 
     copyBtn.addEventListener('click', () => {
-      const rows = tableBody.querySelectorAll('tr');
-      let tsv = "Name\tInitials\tShift\n";
-
+      const rows = document.querySelectorAll('#selectionTable tbody tr:not(.shift-header):not(.shift-section)');
+      let tsv = "";
       rows.forEach(row => {
         const name = row.cells[1]?.innerText.trim();
         const initials = row.cells[2]?.innerText.trim();
         const shift = row.cells[3]?.innerText.trim();
-        tsv += `${name}\t${initials}\t${shift}\n`;
+        if (name && initials && shift) {
+          tsv += `${name}\t${initials}\t${shift}\n`;
+        }
       });
-
       navigator.clipboard.writeText(tsv)
-        .then(() => alert("Copied to clipboard in tab-separated format!"))
+        .then(() => alert("Copied names to clipboard!"))
         .catch(err => console.error("Clipboard copy failed:", err));
     });
 
     function updateRowNumbers() {
       count = 1;
-      [...tableBody.querySelectorAll('tr')].forEach(row => {
+      document.querySelectorAll('#selectionTable tbody tr:not(.shift-header):not(.shift-section)').forEach(row => {
         row.cells[0].textContent = count++;
       });
     }
   </script>
-
 </body>
 </html>
-
-
-
-
-
-
